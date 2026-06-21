@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 250 250 250;
+  --foreground: 15 23 42;
+  --font-inter: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-playfair: Georgia, "Times New Roman", ui-serif, serif;
+}
+* { border-color: #e8e8e8; }
+html { scroll-behavior: smooth; }
+body { color: rgb(var(--foreground)); background: rgb(var(--background)); font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+::selection { background: rgba(200,169,107,.28); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #cbd0d8; border-radius: 20px; }
+.gold-ring { box-shadow: inset 0 0 0 1px rgba(200,169,107,.35), 0 10px 30px rgba(15,23,42,.06); }
+.table-row { transition: background-color .2s ease; }
+.table-row:hover { background: #fbfaf7; }
+@media print { .no-print { display: none !important; } }

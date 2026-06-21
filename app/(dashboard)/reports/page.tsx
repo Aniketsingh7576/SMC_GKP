@@ -1,0 +1,2 @@
+import { Suspense } from "react"; import Link from "next/link"; import { FilePlus2 } from "lucide-react"; import { PageHeading } from "@/components/ui/page-heading"; import { Button } from "@/components/ui/button"; import { ReportManager } from "@/features/reports/report-manager";
+export default function ReportsPage() { return <><PageHeading title="All Reports" description="Search, preview and manage every medical report" action={<Link href="/reports/upload"><Button><FilePlus2 size={17}/>Upload Report</Button></Link>}/><Suspense><ReportManager/></Suspense></>; }

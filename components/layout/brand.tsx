@@ -1,0 +1,2 @@
+import { ShieldCheck } from "lucide-react";
+export function Brand({ compact = false }: { compact?: boolean }) { return <div className="flex items-center gap-3"><div className="grid size-11 place-items-center rounded-xl border border-gold/40 bg-gold/10 text-gold"><ShieldCheck size={25} /></div>{!compact && <div><div className="font-display text-lg font-semibold tracking-[.12em] text-white">MEDVAULT</div><div className="text-[10px] uppercase tracking-[.23em] text-slate-400">Report Portal</div></div>}</div>; }

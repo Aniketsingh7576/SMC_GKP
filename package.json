@@ -1,0 +1,53 @@
+{
+  "name": "medvault-report-portal",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx scripts/seed.ts",
+    "verify:pdf": "node --import tsx scripts/verify-pdf-pipeline.ts",
+    "settings:cns-qr": "node --import tsx scripts/set-cns-qr-placement.ts",
+    "reports:regenerate-qr": "node --import tsx scripts/regenerate-all-report-qrs.ts",
+    "report:replace-uid": "node --import tsx scripts/replace-report-uid.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.1.0",
+    "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.12.1",
+    "jose": "^6.0.11",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.511.0",
+    "mongoose": "^8.15.1",
+    "multer": "^2.2.0",
+    "next": "^15.3.3",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.56.4",
+    "react-pdf": "^10.4.1",
+    "recharts": "^2.15.3",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^3.3.0",
+    "zod": "^3.25.42"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.24",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules
+.next
+.next-dev
+.env
+.env.local
+npm-debug.log*
+public/uploads/reports/*
+public/uploads/qr/*
+public/uploads/branding/*
+!public/uploads/**/.gitkeep
