@@ -15,6 +15,7 @@
     "report:replace-uid": "node --import tsx scripts/replace-report-uid.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1084.0",
     "@hookform/resolvers": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
