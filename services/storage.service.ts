@@ -57,14 +57,28 @@ class VercelBlobAdapter implements StorageAdapter {
   }
 }
 
-// Pick the adapter by what's configured. On Vercel: set BLOB_READ_WRITE_TOKEN (Vercel Blob)
-// or S3_* (Cloudflare R2 / S3). Locally it falls back to disk.
-export const storage: StorageAdapter =
-  process.env.S3_BUCKET && process.env.S3_ENDPOINT
-    ? new S3StorageAdapter()
-    : process.env.BLOB_READ_WRITE_TOKEN
-      ? new VercelBlobAdapter()
-      : new LocalStorageAdapter();
+// Pick the adapter by what's configured, evaluated lazily on first use so the runtime
+// environment (e.g. BLOB_READ_WRITE_TOKEN injected by Vercel) is always read fresh.
+// On Vercel, local disk is read-only, so never fall back to it there.
+function selectStorage(): StorageAdapter {
+  if (process.env.S3_BUCKET && process.env.S3_ENDPOINT) return new S3StorageAdapter();
+  if (process.env.BLOB_READ_WRITE_TOKEN) return new VercelBlobAdapter();
+  if (process.env.VERCEL) {
+    throw new Error(
+      "No blob storage configured. Connect a Vercel Blob store (BLOB_READ_WRITE_TOKEN) or set S3_* env vars."
+    );
+  }
+  return new LocalStorageAdapter();
+}
+
+let _adapter: StorageAdapter | null = null;
+const adapter = () => (_adapter ??= selectStorage());
+
+export const storage: StorageAdapter = {
+  save: (key, data) => adapter().save(key, data),
+  remove: (key) => adapter().remove(key),
+  read: (key) => adapter().read(key)
+};
 
 export function safeStorageKey(key: string) {
   const clean = key.replaceAll("\\", "/").replace(/^\/+/, "");
