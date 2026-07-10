@@ -1,6 +1,7 @@
 import { mkdir, unlink, writeFile, readFile } from "fs/promises";
 import path from "path";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { put as blobPut, del as blobDel, list as blobList } from "@vercel/blob";
 
 export interface StorageAdapter { save(key: string, data: Buffer): Promise<string>; remove(key: string): Promise<void>; read(key: string): Promise<Buffer> }
 class LocalStorageAdapter implements StorageAdapter {
@@ -34,11 +35,46 @@ class S3StorageAdapter implements StorageAdapter {
   }
 }
 
-// Use S3/R2 when configured (e.g. on Vercel), fall back to local disk for development.
+// Vercel Blob adapter. Files are stored at their deterministic key (no random suffix)
+// and served ONLY through the app's authorized routes — the raw blob URL is never exposed.
+class VercelBlobAdapter implements StorageAdapter {
+  private token = process.env.BLOB_READ_WRITE_TOKEN;
+  async save(key: string, data: Buffer) {
+    await blobPut(key, data, {
+      access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      token: this.token
+    });
+    return `/api/uploads/${key}`;
+  }
+  private async urlFor(key: string) {
+    const { blobs } = await blobList({ prefix: key, token: this.token });
+    return blobs.find((b) => b.pathname === key)?.url;
+  }
+  async remove(key: string) {
+    try {
+      const url = await this.urlFor(key);
+      if (url) await blobDel(url, { token: this.token });
+    } catch {}
+  }
+  async read(key: string) {
+    const url = await this.urlFor(key);
+    if (!url) throw new Error("File not found");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("File not found");
+    return Buffer.from(await res.arrayBuffer());
+  }
+}
+
+// Pick the adapter by what's configured. On Vercel: set BLOB_READ_WRITE_TOKEN (Vercel Blob)
+// or S3_* (Cloudflare R2 / S3). Locally it falls back to disk.
 export const storage: StorageAdapter =
   process.env.S3_BUCKET && process.env.S3_ENDPOINT
     ? new S3StorageAdapter()
-    : new LocalStorageAdapter();
+    : process.env.BLOB_READ_WRITE_TOKEN
+      ? new VercelBlobAdapter()
+      : new LocalStorageAdapter();
 
 export function safeStorageKey(key: string) {
   const clean = key.replaceAll("\\", "/").replace(/^\/+/, "");
