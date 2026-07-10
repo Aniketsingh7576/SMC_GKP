@@ -8,3 +8,4 @@ public/uploads/reports/*
 public/uploads/qr/*
 public/uploads/branding/*
 !public/uploads/**/.gitkeep
+.claude/

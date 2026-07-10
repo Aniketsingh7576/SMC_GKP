@@ -9,8 +9,8 @@ async function seed() {
     import("../models/Settings")
   ]);
   await connectDB();
-  const email = (process.env.SEED_ADMIN_EMAIL || "admin@medvault.local").toLowerCase();
-  const password = process.env.SEED_ADMIN_PASSWORD || "ChangeMe123!";
+  const email = (process.env.SEED_ADMIN_EMAIL || "admin@gmail.com").toLowerCase();
+  const password = process.env.SEED_ADMIN_PASSWORD || "12345";
   const passwordHash = await bcrypt.hash(password, 12);
   const currentAdmin = await User.findOne({ role: "super_admin" });
   if (currentAdmin) {
