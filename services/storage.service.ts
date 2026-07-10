@@ -1,7 +1,7 @@
 import { mkdir, unlink, writeFile, readFile } from "fs/promises";
 import path from "path";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { put as blobPut, del as blobDel, list as blobList } from "@vercel/blob";
+import { put as blobPut, del as blobDel, get as blobGet } from "@vercel/blob";
 
 export interface StorageAdapter { save(key: string, data: Buffer): Promise<string>; remove(key: string): Promise<void>; read(key: string): Promise<Buffer> }
 class LocalStorageAdapter implements StorageAdapter {
@@ -35,35 +35,25 @@ class S3StorageAdapter implements StorageAdapter {
   }
 }
 
-// Vercel Blob adapter. Files are stored at their deterministic key (no random suffix)
-// and served ONLY through the app's authorized routes — the raw blob URL is never exposed.
+// Vercel Blob adapter (Private store). Files are stored at their deterministic key and
+// require the token to read, so nothing is publicly accessible. Content is served only
+// through the app's authorized routes.
 class VercelBlobAdapter implements StorageAdapter {
   private token = process.env.BLOB_READ_WRITE_TOKEN;
   async save(key: string, data: Buffer) {
     await blobPut(key, data, {
-      access: "public",
+      access: "private",
       addRandomSuffix: false,
       allowOverwrite: true,
       token: this.token
     });
     return `/api/uploads/${key}`;
   }
-  private async urlFor(key: string) {
-    const { blobs } = await blobList({ prefix: key, token: this.token });
-    return blobs.find((b) => b.pathname === key)?.url;
-  }
-  async remove(key: string) {
-    try {
-      const url = await this.urlFor(key);
-      if (url) await blobDel(url, { token: this.token });
-    } catch {}
-  }
+  async remove(key: string) { try { await blobDel(key, { token: this.token }); } catch {} }
   async read(key: string) {
-    const url = await this.urlFor(key);
-    if (!url) throw new Error("File not found");
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("File not found");
-    return Buffer.from(await res.arrayBuffer());
+    const result = await blobGet(key, { access: "private", token: this.token });
+    if (!result?.stream) throw new Error("File not found");
+    return Buffer.from(await new Response(result.stream).arrayBuffer());
   }
 }
 
