@@ -16,7 +16,9 @@ export async function GET(
     const report = await Report.findById((await params).id);
     if (!report) return NextResponse.json({ error: "Report not found" }, { status: 404 });
     const format = new URL(req.url).searchParams.get("format") === "svg" ? "svg" : "png";
-    const data = await storage.read(format === "svg" ? report.qrSvgStorageKey : report.qrPngStorageKey);
+    const key = format === "svg" ? report.qrSvgStorageKey : report.qrPngStorageKey;
+    if (!key) return NextResponse.json({ error: "QR not available for this report" }, { status: 404 });
+    const data = await storage.read(key);
     return new NextResponse(new Uint8Array(data), {
       headers: {
         "Content-Type": format === "svg" ? "image/svg+xml" : "image/png",

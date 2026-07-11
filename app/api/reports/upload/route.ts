@@ -5,11 +5,7 @@ import { requireSession } from "@/lib/auth";
 import Patient from "@/models/Patient";
 import Report from "@/models/Report";
 import { storage } from "@/services/storage.service";
-import {
-  embedQRIntoPDF,
-  generateQRAssets,
-  getQRPlacement
-} from "@/services/report.service";
+import { reportPublicUrl } from "@/services/report.service";
 import { logActivity } from "@/services/activity.service";
 import { isValidReportUID, normalizeReportUID } from "@/lib/report-uid";
 import { extractUIDFromPDF } from "@/services/uid-ocr.service";
@@ -68,26 +64,12 @@ export async function POST(req: Request) {
       });
     }
 
-    const [placement, qr] = await Promise.all([
-      getQRPlacement(),
-      generateQRAssets(uid)
-    ]);
-    savedKeys.push(qr.pngKey, qr.svgKey);
-
-    let embedded: Buffer;
-    try {
-      embedded = await embedQRIntoPDF(original, qr.png, uid, placement);
-    } catch {
-      throw new Error("The PDF could not be processed. It may be encrypted or malformed.");
-    }
-
+    // QR generation/embedding is disabled — store the original PDF as-is and
+    // serve it directly. The report still has a public verification page/link.
+    const publicUrl = await reportPublicUrl(uid);
     const originalKey = `reports/original/${uid}.pdf`;
-    const embeddedKey = `reports/embedded/${uid}.pdf`;
-    await Promise.all([
-      storage.save(originalKey, original),
-      storage.save(embeddedKey, embedded)
-    ]);
-    savedKeys.push(originalKey, embeddedKey);
+    await storage.save(originalKey, original);
+    savedKeys.push(originalKey);
 
     const report = new Report({
       uid,
@@ -96,20 +78,11 @@ export async function POST(req: Request) {
       mobileNumber,
       reportName,
       reportType,
-      reportUrl: qr.publicUrl,
-      qrImageUrl: qr.pngUrl,
-      qrSvgUrl: qr.svgUrl,
+      reportUrl: publicUrl,
       originalPdfUrl: "pending",
       qrEmbeddedPdfUrl: "pending",
       originalStorageKey: originalKey,
-      embeddedStorageKey: embeddedKey,
-      qrPngStorageKey: qr.pngKey,
-      qrSvgStorageKey: qr.svgKey,
-      qrPosition: placement.position,
-      qrSize: placement.size,
-      qrMargin: placement.margin,
-      qrCustomX: placement.customX,
-      qrCustomY: placement.customY,
+      embeddedStorageKey: originalKey,
       fileSize: original.length,
       mimeType: file.type,
       createdBy: user.id
@@ -124,13 +97,12 @@ export async function POST(req: Request) {
       action: "upload_report",
       entityType: "Report",
       entityId: String(report._id),
-      metadata: { uid, qrPosition: placement.position },
+      metadata: { uid },
       request: req
     });
     return NextResponse.json({
       uid,
-      reportUrl: qr.publicUrl,
-      qrImage: qr.pngUrl,
+      reportUrl: publicUrl,
       originalPdf: report.originalPdfUrl,
       modifiedPdf: report.qrEmbeddedPdfUrl,
       report

@@ -10,7 +10,7 @@ async function main() {
     { connectDB },
     { default: Report },
     { storage },
-    { regenerateQR, reportPublicUrl },
+    { reportPublicUrl },
     { isValidReportUID }
   ] = await Promise.all([
     import("../lib/db"),
@@ -38,9 +38,11 @@ async function main() {
   report.uid = newUid;
   report.reportUrl = await reportPublicUrl(newUid);
   report.originalStorageKey = newOriginalKey;
+  report.embeddedStorageKey = newOriginalKey;
   await report.save();
-  await regenerateQR(String(report._id));
-  await Promise.all(oldKeys.map((key) => storage.remove(key)));
+  await Promise.all(
+    oldKeys.filter((key): key is string => Boolean(key)).map((key) => storage.remove(key))
+  );
   console.log(`Replaced ${oldUid} with printed PDF UID ${newUid}.`);
   process.exit(0);
 }

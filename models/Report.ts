@@ -11,14 +11,14 @@ export interface IReport {
   reportName: string;
   reportType: string;
   reportUrl: string;
-  qrImageUrl: string;
-  qrSvgUrl: string;
+  qrImageUrl?: string;
+  qrSvgUrl?: string;
   originalPdfUrl: string;
   qrEmbeddedPdfUrl: string;
   originalStorageKey: string;
   embeddedStorageKey: string;
-  qrPngStorageKey: string;
-  qrSvgStorageKey: string;
+  qrPngStorageKey?: string;
+  qrSvgStorageKey?: string;
   qrPosition: QRPosition;
   qrSize: number;
   qrMargin: number;
@@ -44,14 +44,14 @@ const schema = new Schema<IReport>({
   reportName: { type: String, required: true, trim: true, index: true },
   reportType: { type: String, required: true, trim: true, index: true },
   reportUrl: { type: String, required: true },
-  qrImageUrl: { type: String, required: true },
-  qrSvgUrl: { type: String, required: true },
+  qrImageUrl: { type: String, default: "" },
+  qrSvgUrl: { type: String, default: "" },
   originalPdfUrl: { type: String, required: true },
   qrEmbeddedPdfUrl: { type: String, required: true },
   originalStorageKey: { type: String, required: true },
   embeddedStorageKey: { type: String, required: true },
-  qrPngStorageKey: { type: String, required: true },
-  qrSvgStorageKey: { type: String, required: true },
+  qrPngStorageKey: { type: String, default: "" },
+  qrSvgStorageKey: { type: String, default: "" },
   qrPosition: { type: String, enum: ["cns-psychiatry", "bottom-right", "bottom-left", "top-right", "top-left", "custom"], default: "cns-psychiatry" },
   qrSize: { type: Number, min: 48, max: 240, default: 100 },
   qrMargin: { type: Number, min: 0, max: 144, default: 24 },

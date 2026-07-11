@@ -47,12 +47,14 @@ export async function DELETE(req: Request, { params }: Context) {
     const { id } = await params;
     const report = await Report.findByIdAndDelete(id);
     if (!report) return NextResponse.json({ error: "Report not found" }, { status: 404 });
-    await Promise.all([
-      storage.remove(report.originalStorageKey),
-      storage.remove(report.embeddedStorageKey),
-      storage.remove(report.qrPngStorageKey),
-      storage.remove(report.qrSvgStorageKey)
-    ]);
+    await Promise.all(
+      [
+        report.originalStorageKey,
+        report.embeddedStorageKey,
+        report.qrPngStorageKey,
+        report.qrSvgStorageKey
+      ].filter((key): key is string => Boolean(key)).map((key) => storage.remove(key))
+    );
     await logActivity({
       actor: user.id,
       action: "delete_report",

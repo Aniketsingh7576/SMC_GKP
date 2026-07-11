@@ -53,7 +53,11 @@ export async function PublicReportView({ uid }: { uid: string }) {
               <Info icon={FileCheck2} label="Report type" value={report.reportType} />
             </div>
             <div className="my-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-3"><img src={report.qrImageUrl} alt="Verification QR" className="size-20 rounded-lg border p-1" /><div><p className="font-semibold">Authenticity verified</p><p className="text-xs text-slate-500">The QR inside this PDF resolves to this verification page.</p></div></div>
+              {report.qrImageUrl ? (
+                <div className="flex items-center gap-3"><img src={report.qrImageUrl} alt="Verification QR" className="size-20 rounded-lg border p-1" /><div><p className="font-semibold">Authenticity verified</p><p className="text-xs text-slate-500">The QR inside this PDF resolves to this verification page.</p></div></div>
+              ) : (
+                <div><p className="font-semibold">Verified medical report</p><p className="text-xs text-slate-500">This report has been verified by the issuing centre.</p></div>
+              )}
               <PublicReportActions uid={uid} />
             </div>
             <div className="overflow-hidden rounded-2xl border bg-slate-100">
